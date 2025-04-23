@@ -1,0 +1,1 @@
+st.write("Number of forecasted days:", len(forecast))
