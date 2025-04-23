@@ -71,6 +71,35 @@ fig.update_layout(title="Gold Price Forecast for Next 30 Days", xaxis_title="Dat
 st.plotly_chart(fig, use_container_width=True)
 
 # ----------------------
+# Predict Price for a Specific Date
+# ----------------------
+st.subheader("🔍 Get Predicted Gold Price for a Specific Date")
+
+st.caption("Note: Forecast available for the next 60 days only.")
+
+target_date = st.date_input("Select a future date", value=pd.to_datetime("2025-05-10"))
+target_date = pd.to_datetime(target_date)
+
+result = forecast[forecast["ds"] == target_date]
+
+if not result.empty:
+    predicted_price = result["yhat"].values[0]
+    lower_bound = result["yhat_lower"].values[0]
+    upper_bound = result["yhat_upper"].values[0]
+
+    st.success(f"📅 Predicted Price on {target_date.date()}: ₹{predicted_price:,.2f}")
+    st.info(f"🟢 Confidence Range: ₹{lower_bound:,.2f} – ₹{upper_bound:,.2f}")
+
+    if predicted_price > forecast.iloc[-1]["yhat"]:
+        st.success("✅ Prices expected to rise — Consider investing.")
+    elif predicted_price < forecast.iloc[-1]["yhat"]:
+        st.warning("⚠️ Prices expected to dip — Better to wait.")
+    else:
+        st.info("📊 Price stable — Invest as needed.")
+else:
+    st.error("❌ Prediction not available for the selected date. Try a date within the next 60 days.")
+
+# ----------------------
 # Historical Gold Price Graphs (India and Global Separately)
 # ----------------------
 st.subheader("📉 Historical Gold Price in India")
@@ -93,7 +122,7 @@ except Exception as e:
 # ----------------------
 # Time Range Filtering
 # ----------------------
-st.subheader("📅 Filter Forecast Data by Date Range")
+st.subheader("🗕️ Filter Forecast Data by Date Range")
 start_date = pd.to_datetime(st.date_input("Start Date", value=pd.to_datetime("2023-01-01")))
 end_date = pd.to_datetime(st.date_input("End Date", value=pd.to_datetime("2025-01-01")))
 filtered_data = forecast[(forecast['ds'] >= start_date) & (forecast['ds'] <= end_date)].copy()
