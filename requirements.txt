@@ -4,3 +4,4 @@ plotly
 prophet
 matplotlib
 numpy
+seaborn
