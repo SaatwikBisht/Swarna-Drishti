@@ -96,8 +96,9 @@ except Exception as e:
 st.subheader("📅 Filter Forecast Data by Date Range")
 start_date = pd.to_datetime(st.date_input("Start Date", value=pd.to_datetime("2023-01-01")))
 end_date = pd.to_datetime(st.date_input("End Date", value=pd.to_datetime("2025-01-01")))
-filtered_data = forecast[(forecast['ds'] >= start_date) & (forecast['ds'] <= end_date)]
-st.line_chart(filtered_data[['ds', 'yhat']])
+filtered_data = forecast[(forecast['ds'] >= start_date) & (forecast['ds'] <= end_date)].copy()
+filtered_data.set_index("ds", inplace=True)
+st.line_chart(filtered_data["yhat"])
 
 # ----------------------
 # Forecast Table
