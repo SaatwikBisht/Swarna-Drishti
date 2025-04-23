@@ -49,12 +49,7 @@ import plotly.graph_objs as go
 from prophet.plot import plot_plotly
 import seaborn as sns
 import matplotlib.pyplot as plt
-
-# ----------------------
 # Set Page Layout and Style
-# ----------------------
-st.set_page_config(page_title="Swarna Drishti", layout="wide")
-
 # Add Background Image
 st.markdown("""
     <style>
