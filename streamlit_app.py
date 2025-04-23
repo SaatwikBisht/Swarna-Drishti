@@ -31,7 +31,7 @@ st.markdown("<h3 style='color:gold; text-align:center;'>AI-Powered Gold Price Or
 st.markdown("""
     <div style="text-align:center; color: white;">
         <p style="font-size:16px;">
-            Welcome to Swarna Drishti! Get your **AI-powered gold price predictions** and investment tips.
+            Welcome to Swarna Drishti! Get your AI-powered gold price predictions and investment tips.
         </p>
     </div>
 """, unsafe_allow_html=True)
