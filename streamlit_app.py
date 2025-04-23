@@ -4,8 +4,6 @@ import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
 from prophet.plot import plot_plotly
-import seaborn as sns
-import matplotlib.pyplot as plt
 
 # ----------------------
 # Set Page Layout First
@@ -73,32 +71,27 @@ fig.update_layout(title="Gold Price Forecast for Next 30 Days", xaxis_title="Dat
 st.plotly_chart(fig, use_container_width=True)
 
 # ----------------------
-# Correlation Heatmap
+# Historical Gold Price Graphs (India and Global Separately)
 # ----------------------
-st.subheader("🔍 Correlation Between Economic Factors and Gold Price")
-df = pd.read_csv("forecast.csv")  # Use enriched CSV with extra columns
-corr_data = df[['Gold_Price_10g_INR', 'USD_INR', 'Inflation_CPI', 'NIF']].corr()
-fig2, ax = plt.subplots(figsize=(10, 6))
-sns.heatmap(corr_data, annot=True, cmap='coolwarm', fmt=".2f", linewidths=0.5)
-st.pyplot(fig2)
+st.subheader("📉 Historical Gold Price in India")
+try:
+    gold_df = pd.read_csv("gold this final.csv")
+    gold_df["Date"] = pd.to_datetime(gold_df["Date"], dayfirst=True)
+    fig_india = go.Figure()
+    fig_india.add_trace(go.Scatter(x=gold_df["Date"], y=gold_df["Price 10g (in INR)"], mode="lines", name="India Gold Price (10g)", line=dict(color="orange")))
+    fig_india.update_layout(title="Historical Gold Price in India", xaxis_title="Date", yaxis_title="Price (INR)", template="plotly_white")
+    st.plotly_chart(fig_india, use_container_width=True)
+except Exception as e:
+    st.warning("Unable to load India gold price data. Ensure 'gold this final.csv' exists and has the required column.")
 
-# ----------------------
-# Scenario-Based Prediction
-# ----------------------
-st.subheader("💡 Scenario-Based Price Prediction")
-usd_inr_change = st.slider("USD to INR Change (%)", min_value=-5, max_value=5, value=0)
-simulated_forecast = forecast.copy()
-simulated_forecast['adjusted'] = simulated_forecast['yhat'] * (1 + usd_inr_change / 100)
-st.line_chart(simulated_forecast[['ds', 'adjusted']])
-
-# ----------------------
-# Historical vs Predicted Comparison
-# ----------------------
-st.subheader("📊 Historical vs Predicted Gold Price")
-fig3 = go.Figure()
-fig3.add_trace(go.Scatter(x=df['ds'], y=df['Gold_Price_10g_INR'], mode='lines', name='Historical Price'))
-fig3.add_trace(go.Scatter(x=forecast['ds'], y=forecast['yhat'], mode='lines', name='Predicted Price', line=dict(color='gold')))
-st.plotly_chart(fig3, use_container_width=True)
+st.subheader("🌍 Historical Global Gold Price (LBMA)")
+try:
+    fig_global = go.Figure()
+    fig_global.add_trace(go.Scatter(x=gold_df["Date"], y=gold_df["GGP (LBMA)"], mode="lines", name="Global Gold Price (LBMA)", line=dict(color="green")))
+    fig_global.update_layout(title="Historical Global Gold Price (LBMA)", xaxis_title="Date", yaxis_title="Price (USD)", template="plotly_white")
+    st.plotly_chart(fig_global, use_container_width=True)
+except Exception as e:
+    st.warning("Unable to load global gold price data. Ensure 'gold this final.csv' has the 'GGP (LBMA)' column.")
 
 # ----------------------
 # Time Range Filtering
