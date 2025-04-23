@@ -81,24 +81,21 @@ try:
     fig_india.add_trace(go.Scatter(x=gold_df["Date"], y=gold_df["Price 10g (in INR)"], mode="lines", name="India Gold Price (10g)", line=dict(color="orange")))
     fig_india.update_layout(title="Historical Gold Price in India", xaxis_title="Date", yaxis_title="Price (INR)", template="plotly_white")
     st.plotly_chart(fig_india, use_container_width=True)
-except Exception as e:
-    st.warning("Unable to load India gold price data. Ensure 'gold this final.csv' exists and has the required column.")
 
-st.subheader("🌍 Historical Global Gold Price (LBMA)")
-try:
+    st.subheader("🌍 Historical Global Gold Price (LBMA)")
     fig_global = go.Figure()
     fig_global.add_trace(go.Scatter(x=gold_df["Date"], y=gold_df["GGP (LBMA)"], mode="lines", name="Global Gold Price (LBMA)", line=dict(color="green")))
     fig_global.update_layout(title="Historical Global Gold Price (LBMA)", xaxis_title="Date", yaxis_title="Price (USD)", template="plotly_white")
     st.plotly_chart(fig_global, use_container_width=True)
 except Exception as e:
-    st.warning("Unable to load global gold price data. Ensure 'gold this final.csv' has the 'GGP (LBMA)' column.")
+    st.warning("Unable to load historical gold price data. Ensure 'gold this final.csv' has the required columns.")
 
 # ----------------------
 # Time Range Filtering
 # ----------------------
 st.subheader("📅 Filter Forecast Data by Date Range")
-start_date = st.date_input("Start Date", value=pd.to_datetime("2023-01-01"))
-end_date = st.date_input("End Date", value=pd.to_datetime("2025-01-01"))
+start_date = pd.to_datetime(st.date_input("Start Date", value=pd.to_datetime("2023-01-01")))
+end_date = pd.to_datetime(st.date_input("End Date", value=pd.to_datetime("2025-01-01")))
 filtered_data = forecast[(forecast['ds'] >= start_date) & (forecast['ds'] <= end_date)]
 st.line_chart(filtered_data[['ds', 'yhat']])
 
