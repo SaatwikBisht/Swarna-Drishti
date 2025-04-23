@@ -66,7 +66,7 @@ col3.metric("Investment Tip", "Consider investing now" if percent > 2 else "Bett
 # ----------------------
 # Forecast Graph
 # ----------------------
-st.subheader("📈 Gold Price Prediction (Next 60 Days)")
+st.subheader("📈 Gold Price Prediction(24kt) (Next 60 Days)")
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=forecast["ds"], y=forecast["yhat"], mode="lines", name="Predicted Price", line=dict(color="gold")))
 fig.add_trace(go.Scatter(x=forecast["ds"], y=forecast["yhat_upper"], mode="lines", name="Upper Bound", line=dict(dash='dot', color="lightgreen")))
