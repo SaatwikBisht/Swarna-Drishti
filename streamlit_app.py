@@ -52,8 +52,8 @@ forecast = load_forecast()
 # ----------------------
 col1, col2, col3 = st.columns(3)
 latest_price = forecast.iloc[-1]["yhat"]
-change = latest_price - forecast.iloc[-31]["yhat"]
-percent = (change / forecast.iloc[-31]["yhat"]) * 100
+change = latest_price - forecast.iloc[-60]["yhat"]
+percent = (change / forecast.iloc[-60]["yhat"]) * 100
 
 col1.metric("Latest Gold Price", f"₹{latest_price:,.2f}")
 col2.metric("Price Change in 60 Days", f"₹{change:,.2f}", f"{percent:.2f}%")
