@@ -47,6 +47,10 @@ def load_forecast():
 
 forecast = load_forecast()
 
+# Debug Info (can remove later)
+st.write("Last date in forecast:", forecast['ds'].max())
+st.write("Number of forecasted days:", len(forecast))
+
 # ----------------------
 # Overview Dashboard
 # ----------------------
