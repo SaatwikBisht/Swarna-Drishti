@@ -47,13 +47,6 @@ def load_forecast():
 
 forecast = load_forecast()
 
-# Filter only the next 60 days from today if more rows exist
-from datetime import datetime, timedelta
-
-start_date_limit = pd.to_datetime(datetime.today())
-end_date_limit = start_date_limit + timedelta(days=60)
-forecast = forecast[(forecast['ds'] >= start_date_limit) & (forecast['ds'] <= end_date_limit)].copy()
-
 # Debug Info (can remove later)
 st.write("Last date in forecast:", forecast['ds'].max())
 st.write("Number of forecasted days:", len(forecast))
@@ -63,9 +56,8 @@ st.write("Number of forecasted days:", len(forecast))
 # ----------------------
 col1, col2, col3 = st.columns(3)
 latest_price = forecast.iloc[-1]["yhat"]
-initial_price = forecast.iloc[0]["yhat"]
-change = latest_price - initial_price
-percent = (change / initial_price) * 100
+change = latest_price - forecast.iloc[-60]["yhat"]
+percent = (change / forecast.iloc[-60]["yhat"]) * 100
 
 col1.metric("Latest Gold Price", f"₹{latest_price:,.2f}")
 col2.metric("Price Change in 60 Days", f"₹{change:,.2f}", f"{percent:.2f}%")
@@ -145,4 +137,4 @@ st.line_chart(filtered_data["yhat"])
 # Forecast Table
 # ----------------------
 with st.expander("📊 View Raw Forecast Data Table"):
-    st.dataframe(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]])
+    st.dataframe(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(60))
