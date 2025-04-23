@@ -56,18 +56,18 @@ change = latest_price - forecast.iloc[-31]["yhat"]
 percent = (change / forecast.iloc[-31]["yhat"]) * 100
 
 col1.metric("Latest Gold Price", f"₹{latest_price:,.2f}")
-col2.metric("Price Change in 30 Days", f"₹{change:,.2f}", f"{percent:.2f}%")
+col2.metric("Price Change in 60 Days", f"₹{change:,.2f}", f"{percent:.2f}%")
 col3.metric("Investment Tip", "Consider investing now" if percent > 2 else "Better to wait")
 
 # ----------------------
 # Forecast Graph
 # ----------------------
-st.subheader("📈 Gold Price Prediction (Next 30 Days)")
+st.subheader("📈 Gold Price Prediction (Next 60 Days)")
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=forecast["ds"], y=forecast["yhat"], mode="lines", name="Predicted Price", line=dict(color="gold")))
 fig.add_trace(go.Scatter(x=forecast["ds"], y=forecast["yhat_upper"], mode="lines", name="Upper Bound", line=dict(dash='dot', color="lightgreen")))
 fig.add_trace(go.Scatter(x=forecast["ds"], y=forecast["yhat_lower"], mode="lines", name="Lower Bound", line=dict(dash='dot', color="salmon")))
-fig.update_layout(title="Gold Price Forecast for Next 30 Days", xaxis_title="Date", yaxis_title="Gold Price (INR per 10g)", template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)")
+fig.update_layout(title="Gold Price Forecast for Next 60 Days", xaxis_title="Date", yaxis_title="Gold Price (INR per 10g)", template="plotly_dark", plot_bgcolor="rgba(0,0,0,0)")
 st.plotly_chart(fig, use_container_width=True)
 
 # ----------------------
@@ -77,7 +77,7 @@ st.subheader("🔍 Get Predicted Gold Price for a Specific Date")
 
 st.caption("Note: Forecast available for the next 60 days only.")
 
-target_date = st.date_input("Select a future date", value=pd.to_datetime("2025-05-10"))
+target_date = st.date_input("Select a future date", value=pd.to_datetime("2025-04-10"))
 target_date = pd.to_datetime(target_date)
 
 result = forecast[forecast["ds"] == target_date]
@@ -133,4 +133,4 @@ st.line_chart(filtered_data["yhat"])
 # Forecast Table
 # ----------------------
 with st.expander("📊 View Raw Forecast Data Table"):
-    st.dataframe(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(30))
+    st.dataframe(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail(60))
