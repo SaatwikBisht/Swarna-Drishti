@@ -28,8 +28,8 @@ st.markdown("""
 # ----------------------
 # Title and Subtitle
 # ----------------------
-st.title("<h1 style='color:gold; text-align:center;'>Swarna Drishti</h1>", unsafe_allow_html=True)
-st.subheader("<h3 style='color:gold; text-align:center;'>AI-Powered Gold Price Oracle</h3>", unsafe_allow_html=True)
+st.markdown("<h1 style='color:gold; text-align:center;'>Swarna Drishti</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='color:gold; text-align:center;'>AI-Powered Gold Price Oracle</h3>", unsafe_allow_html=True)
 st.markdown("""
     <div style="text-align:center; color: white;">
         <p style="font-size:16px;">
