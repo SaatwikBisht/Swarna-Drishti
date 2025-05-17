@@ -62,7 +62,8 @@ percent_change = (delta / previous["Trident_Forecast"]) * 100
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric(label="📅 Latest Forecast Date", value=latest["Date"].date())
+    st.metric(label="📅 Latest Forecast Date", value=str(latest["Date"].date()))
+
 
 with col2:
     st.metric(label="📈 24KT Gold Price (Predicted)", value=f"₹{latest['Trident_Forecast']:,.2f}")
