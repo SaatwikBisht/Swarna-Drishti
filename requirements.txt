@@ -5,3 +5,17 @@ prophet
 matplotlib
 numpy
 seaborn
+streamlit
+pandas
+numpy
+matplotlib
+seaborn
+scikit-learn
+xgboost
+catboost
+prophet
+statsmodels
+statsforecast
+polars
+plotly
+
