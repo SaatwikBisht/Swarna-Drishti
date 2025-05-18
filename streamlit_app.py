@@ -13,8 +13,7 @@ st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
 def load_forecast():
     try:
         df = pd.read_csv("forecast.csv")
-        # Convert Date column to datetime - your dates are in DD-MM-YYYY format
-        df["Date"] = pd.to_datetime(df["Date"], format="%d-%m-%Y")
+        df["Date"] = pd.to_datetime(df["Date"])
         df = df.sort_values("Date").reset_index(drop=True)
         return df
     except Exception as e:
@@ -27,12 +26,10 @@ if df.empty:
     st.error("❌ Forecast data not found or empty. Please check forecast.csv.")
     st.stop()
 
-# Get the latest row data
 latest_row = df.iloc[-1]
 latest_date = latest_row["Date"]
 latest_price = latest_row["Predicted_Price"]
 
-# Calculate daily change
 if len(df) > 1:
     previous_row = df.iloc[-2]
     previous_price = previous_row["Predicted_Price"]
@@ -42,12 +39,11 @@ else:
     daily_change = 0
     percent_change = 0
 
-# Display key metrics
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    # Convert datetime to string for display
-    date_str = latest_date.strftime("%d-%m-%Y")
+    # Convert datetime to string format for display
+    date_str = latest_date.strftime("%Y-%m-%d")
     st.metric("📅 Latest Forecast Date", date_str)
 
 with col2:
@@ -157,7 +153,7 @@ tab1, tab2 = st.tabs(["📅 Next 7 Days", "📅 Next 30 Days"])
 
 with tab1:
     display_7_days = next_7_days.copy()
-    display_7_days["Date"] = display_7_days["Date"].dt.strftime("%d-%m-%Y")
+    display_7_days["Date"] = display_7_days["Date"].dt.strftime("%Y-%m-%d")
     display_7_days["Predicted_Price"] = display_7_days["Predicted_Price"].apply(lambda x: f"₹{x:,.2f}")
     display_7_days.columns = ["Date", "Predicted Price (INR)"]
     st.dataframe(display_7_days, use_container_width=True, height=300)
@@ -165,7 +161,7 @@ with tab1:
 with tab2:
     next_30_days = df.head(30).copy()
     display_30_days = next_30_days.copy()
-    display_30_days["Date"] = display_30_days["Date"].dt.strftime("%d-%m-%Y")
+    display_30_days["Date"] = display_30_days["Date"].dt.strftime("%Y-%m-%d")
     display_30_days["Predicted_Price"] = display_30_days["Predicted_Price"].apply(lambda x: f"₹{x:,.2f}")
     display_30_days.columns = ["Date", "Predicted Price (INR)"]
     st.dataframe(display_30_days, use_container_width=True, height=400)
@@ -181,14 +177,14 @@ with col_stat1:
 with col_stat2:
     max_price = df["Predicted_Price"].max()
     max_idx = df["Predicted_Price"].idxmax()
-    max_date_str = df.iloc[max_idx]["Date"].strftime("%d-%m-%Y")
+    max_date_str = df.iloc[max_idx]["Date"].strftime("%Y-%m-%d")
     st.metric("🔺 Highest Price", f"₹{max_price:,.2f}")
     st.caption(f"Expected on {max_date_str}")
 
 with col_stat3:
     min_price = df["Predicted_Price"].min()
     min_idx = df["Predicted_Price"].idxmin()
-    min_date_str = df.iloc[min_idx]["Date"].strftime("%d-%m-%Y")
+    min_date_str = df.iloc[min_idx]["Date"].strftime("%Y-%m-%d")
     st.metric("🔻 Lowest Price", f"₹{min_price:,.2f}")
     st.caption(f"Expected on {min_date_str}")
 
