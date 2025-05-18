@@ -47,23 +47,36 @@ def load_forecast():
     df = pd.read_csv("forecast.csv")
     df["Date"] = pd.to_datetime(df["Date"])
     df.sort_values("Date", inplace=True)
+    
+    # Filter data to start from May 20, 2025
+    start_date = pd.to_datetime("2025-05-20")
+    df = df[df["Date"] >= start_date]
+    
     return df
 
 df = load_forecast()
+
+# Check if data exists after filtering
+if df.empty:
+    st.error("❌ No forecast data available from May 20, 2025 onwards. Please check your forecast.csv file.")
+    st.stop()
 
 # ----------------------------
 # 📈 Latest Metrics
 # ----------------------------
 latest = df.iloc[-1]
-previous = df.iloc[-2]
-delta = latest["Trident_Forecast"] - previous["Trident_Forecast"]
-percent_change = (delta / previous["Trident_Forecast"]) * 100
+if len(df) > 1:
+    previous = df.iloc[-2]
+    delta = latest["Trident_Forecast"] - previous["Trident_Forecast"]
+    percent_change = (delta / previous["Trident_Forecast"]) * 100
+else:
+    delta = 0
+    percent_change = 0
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.metric(label="📅 Latest Forecast Date", value=str(latest["Date"].date()))
-
 
 with col2:
     st.metric(label="📈 24KT Gold Price (Predicted)", value=f"₹{latest['Trident_Forecast']:,.2f}")
@@ -76,10 +89,13 @@ with col3:
     )
 
 # ----------------------------
-# 📈 Forecast Chart (Next 7 Days)
+# 📈 Forecast Chart (Next 7 Days from May 20, 2025)
 # ----------------------------
-st.markdown("### 📈 Next 7 Days Forecast - 24KT Gold (INR per 10g)")
-future_df = df[df["Date"] > df["Date"].max() - pd.Timedelta(days=7)]
+st.markdown("### 📈 Gold Price Forecast - 24KT Gold (INR per 10g)")
+
+# Show first 7 days from May 20, 2025
+first_date = df["Date"].min()
+future_df = df[df["Date"] <= first_date + pd.Timedelta(days=6)]
 
 fig = go.Figure()
 fig.add_trace(go.Scatter(
@@ -87,13 +103,15 @@ fig.add_trace(go.Scatter(
     y=future_df["Trident_Forecast"],
     mode="lines+markers",
     name="Forecast",
-    line=dict(color="gold", width=2)
+    line=dict(color="gold", width=2),
+    marker=dict(size=8)
 ))
 fig.update_layout(
-    title="24KT Gold Price Forecast (Next 7 Days)",
+    title="24KT Gold Price Forecast (Starting May 20, 2025)",
     xaxis_title="Date",
     yaxis_title="Predicted Price (INR)",
-    template="plotly_dark"
+    template="plotly_dark",
+    showlegend=True
 )
 st.plotly_chart(fig, use_container_width=True)
 
@@ -101,19 +119,32 @@ st.plotly_chart(fig, use_container_width=True)
 # 💡 Investment Suggestion
 # ----------------------------
 st.markdown("### 💡 Investment Insight")
-if future_df["Trident_Forecast"].iloc[-1] > future_df["Trident_Forecast"].iloc[0]:
-    st.success("📈 The gold price is on a rising trend — a good time to invest.")
-elif future_df["Trident_Forecast"].iloc[-1] < future_df["Trident_Forecast"].iloc[0]:
-    st.warning("📉 The gold price is declining — you may wait before investing.")
+if len(future_df) > 1:
+    if future_df["Trident_Forecast"].iloc[-1] > future_df["Trident_Forecast"].iloc[0]:
+        st.success("📈 The gold price is on a rising trend — a good time to invest.")
+    elif future_df["Trident_Forecast"].iloc[-1] < future_df["Trident_Forecast"].iloc[0]:
+        st.warning("📉 The gold price is declining — you may wait before investing.")
+    else:
+        st.info("⏸️ The price seems stable — neutral investment window.")
 else:
-    st.info("⏸️ The price seems stable — neutral investment window.")
+    st.info("⏸️ Not enough data for trend analysis.")
 
 # ----------------------------
 # 🔍 Predict Price on Selected Date
 # ----------------------------
 st.markdown("### 🔍 Predict Gold Price for a Specific Date")
 with st.form("predict_form"):
-    selected_date = st.date_input("Choose a date to predict", value=df["Date"].max())
+    # Set default date to May 20, 2025 and limit selection to available forecast range
+    min_date = df["Date"].min().date()
+    max_date = df["Date"].max().date()
+    default_date = pd.to_datetime("2025-05-20").date()
+    
+    selected_date = st.date_input(
+        "Choose a date to predict", 
+        value=default_date,
+        min_value=min_date,
+        max_value=max_date
+    )
     submitted = st.form_submit_button("🔎 Predict Price")
 
 if submitted:
@@ -126,13 +157,13 @@ if submitted:
         st.error("❌ Forecast not available for this date. Please choose within the forecast range.")
 
 # ----------------------------
-# 📋 Table of Last 7 Days Predicted Prices
+# 📋 Table of Forecast Prices (Starting from May 20, 2025)
 # ----------------------------
-st.markdown("### 📋 Last 7 Days of 24KT Gold Price Predictions")
-last_7_days = df.tail(7).copy()
-last_7_days["Date"] = last_7_days["Date"].dt.strftime('%Y-%m-%d')
+st.markdown("### 📋 24KT Gold Price Predictions (Starting May 20, 2025)")
+display_df = df.head(10).copy()  # Show first 10 days from May 20
+display_df["Date"] = display_df["Date"].dt.strftime('%Y-%m-%d')
 st.dataframe(
-    last_7_days.rename(columns={
+    display_df.rename(columns={
         "Date": "Date",
         "Trident_Forecast": "Predicted Price (INR)"
     }).set_index("Date"),
