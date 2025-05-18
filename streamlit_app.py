@@ -1,14 +1,9 @@
-# streamlit_app.py
-
 import streamlit as st
 import pandas as pd
 import numpy as np
 import plotly.graph_objs as go
 from datetime import datetime
 
-# ----------------------------
-# 💠 Basic Page Setup
-# ----------------------------
 st.set_page_config(page_title="Swarna Drishti", layout="wide")
 st.markdown(
     """
@@ -32,38 +27,23 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# ----------------------------
-# 🌟 Title & Hero Section
-# ----------------------------
 st.markdown("<h1 style='text-align:center; color:gold;'>Swarna Drishti</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align:center; color:white;'>Your AI-Powered 24KT Gold Price Oracle</h4>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
 
-# ----------------------------
-# 📦 Load Data
-# ----------------------------
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("forecast.csv")
     df["Date"] = pd.to_datetime(df["Date"])
     df.sort_values("Date", inplace=True)
-    
-    # Filter data to start from May 20, 2025
-    start_date = pd.to_datetime("2025-05-20")
-    df = df[df["Date"] >= start_date]
-    
     return df
 
 df = load_forecast()
 
-# Check if data exists after filtering
 if df.empty:
-    st.error("❌ No forecast data available from May 20, 2025 onwards. Please check your forecast.csv file.")
+    st.error("❌ No forecast data available. Please check your forecast.csv file.")
     st.stop()
 
-# ----------------------------
-# 📈 Latest Metrics
-# ----------------------------
 latest = df.iloc[-1]
 if len(df) > 1:
     previous = df.iloc[-2]
@@ -76,7 +56,7 @@ else:
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric(label="📅 Latest Forecast Date", value=str(latest["Date"].date()))
+    st.metric(label="📅 Latest Forecast Date", value="2025-06-15")
 
 with col2:
     st.metric(label="📈 24KT Gold Price (Predicted)", value=f"₹{latest['Trident_Forecast']:,.2f}")
@@ -88,14 +68,9 @@ with col3:
         delta=f"{percent_change:.2f}%"
     )
 
-# ----------------------------
-# 📈 Forecast Chart (Next 7 Days from May 20, 2025)
-# ----------------------------
 st.markdown("### 📈 Gold Price Forecast - 24KT Gold (INR per 10g)")
 
-# Show first 7 days from May 20, 2025
-first_date = df["Date"].min()
-future_df = df[df["Date"] <= first_date + pd.Timedelta(days=6)]
+future_df = df.head(7)
 
 fig = go.Figure()
 fig.add_trace(go.Scatter(
@@ -107,7 +82,7 @@ fig.add_trace(go.Scatter(
     marker=dict(size=8)
 ))
 fig.update_layout(
-    title="24KT Gold Price Forecast (Starting May 20, 2025)",
+    title="24KT Gold Price Forecast",
     xaxis_title="Date",
     yaxis_title="Predicted Price (INR)",
     template="plotly_dark",
@@ -115,9 +90,6 @@ fig.update_layout(
 )
 st.plotly_chart(fig, use_container_width=True)
 
-# ----------------------------
-# 💡 Investment Suggestion
-# ----------------------------
 st.markdown("### 💡 Investment Insight")
 if len(future_df) > 1:
     if future_df["Trident_Forecast"].iloc[-1] > future_df["Trident_Forecast"].iloc[0]:
@@ -129,15 +101,11 @@ if len(future_df) > 1:
 else:
     st.info("⏸️ Not enough data for trend analysis.")
 
-# ----------------------------
-# 🔍 Predict Price on Selected Date
-# ----------------------------
 st.markdown("### 🔍 Predict Gold Price for a Specific Date")
 with st.form("predict_form"):
-    # Set default date to May 20, 2025 and limit selection to available forecast range
     min_date = df["Date"].min().date()
     max_date = df["Date"].max().date()
-    default_date = pd.to_datetime("2025-05-20").date()
+    default_date = pd.to_datetime("2025-06-15").date()
     
     selected_date = st.date_input(
         "Choose a date to predict", 
@@ -156,11 +124,8 @@ if submitted:
     else:
         st.error("❌ Forecast not available for this date. Please choose within the forecast range.")
 
-# ----------------------------
-# 📋 Table of Forecast Prices (Starting from May 20, 2025)
-# ----------------------------
-st.markdown("### 📋 24KT Gold Price Predictions (Starting May 20, 2025)")
-display_df = df.head(10).copy()  # Show first 10 days from May 20
+st.markdown("### 📋 24KT Gold Price Predictions")
+display_df = df.head(10).copy()
 display_df["Date"] = display_df["Date"].dt.strftime('%Y-%m-%d')
 st.dataframe(
     display_df.rename(columns={
@@ -170,9 +135,6 @@ st.dataframe(
     use_container_width=True
 )
 
-# ----------------------------
-# Footer
-# ----------------------------
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Trident Forecast</p>",
