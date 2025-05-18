@@ -39,7 +39,8 @@ percent_change = (delta / previous["Predicted"]) * 100 if previous["Predicted"] 
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("📅 Latest Forecast Date", latest["Date"].date())
+    st.metric("📅 Latest Forecast Date", latest["ds"].date())
+
 with col2:
     st.metric("📈 24KT Gold Price (Predicted)", f"₹{latest['Predicted']:,.2f}")
 with col3:
