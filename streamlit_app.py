@@ -42,6 +42,7 @@ else:
 col1, col2, col3 = st.columns(3)
 
 with col1:
+    # Convert datetime to string format for display
     date_str = latest_date.strftime("%Y-%m-%d")
     st.metric("📅 Latest Forecast Date", date_str)
 
