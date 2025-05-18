@@ -26,7 +26,6 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
-
 st.markdown("<h1 style='text-align:center; color:gold;'>Swarna Drishti</h1>", unsafe_allow_html=True)
 st.markdown("<h4 style='text-align:center; color:white;'>Your AI-Powered 24KT Gold Price Oracle</h4>", unsafe_allow_html=True)
 st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
