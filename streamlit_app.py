@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
-from datetime import datetime, timedelta
 
 st.set_page_config(page_title="Swarna Drishti", layout="wide")
 
@@ -13,19 +12,14 @@ st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
 def load_forecast():
     try:
         df = pd.read_csv("forecast.csv")
-        df = df[["ds", "yhat", "yhat_lower", "yhat_upper"]]
-        df.rename(columns={
-            "ds": "Date",
-            "yhat": "Predicted",
-            "yhat_lower": "Lower_Bound",
-            "yhat_upper": "Upper_Bound"
-        }, inplace=True)
+        required_cols = ["ds", "yhat", "yhat_lower", "yhat_upper"]
+        df = df[required_cols].copy()
+        df.columns = ["Date", "Predicted", "Lower_Bound", "Upper_Bound"]
         df["Date"] = pd.to_datetime(df["Date"])
-        df.sort_values("Date", inplace=True)
-        df.reset_index(drop=True, inplace=True)
+        df = df.sort_values("Date").reset_index(drop=True)
         return df
     except Exception as e:
-        st.error(f"Error loading forecast data: {str(e)}")
+        st.error(f"Error loading forecast data: {e}")
         return pd.DataFrame()
 
 df = load_forecast()
@@ -34,51 +28,64 @@ if df.empty:
     st.error("❌ Forecast data not found or empty. Please check forecast.csv.")
     st.stop()
 
-latest = df.iloc[-1]
+latest_row = df.iloc[-1]
+latest_date = latest_row["Date"]
+latest_price = latest_row["Predicted"]
+
 if len(df) > 1:
-    previous = df.iloc[-2]
-    delta = latest["Predicted"] - previous["Predicted"]
-    percent_change = (delta / previous["Predicted"]) * 100
+    previous_row = df.iloc[-2]
+    previous_price = previous_row["Predicted"]
+    delta = latest_price - previous_price
+    percent_change = (delta / previous_price) * 100 if previous_price != 0 else 0
 else:
     delta = 0
     percent_change = 0
 
 col1, col2, col3 = st.columns(3)
+
 with col1:
-    st.metric("📅 Latest Forecast Date", str(latest["Date"].strftime("%Y-%m-%d")))
+    date_string = pd.to_datetime(latest_date).strftime("%Y-%m-%d")
+    st.metric("📅 Latest Forecast Date", date_string)
 
 with col2:
-    st.metric("📈 24KT Gold Price (Predicted)", f"₹{latest['Predicted']:,.2f}")
+    price_string = f"₹{latest_price:,.2f}"
+    st.metric("📈 24KT Gold Price (Predicted)", price_string)
 
 with col3:
-    st.metric("📊 1-Day Change", f"₹{delta:,.2f}", f"{percent_change:.2f}%")
+    delta_string = f"₹{delta:,.2f}"
+    percent_string = f"{percent_change:.2f}%"
+    st.metric("📊 1-Day Change", delta_string, percent_string)
 
 st.markdown("### 📈 Gold Price Forecast – Next 7 Days (24KT)")
-future_df = df.head(7)
+next_7_days = df.head(7).copy()
 
 fig = go.Figure()
+
 fig.add_trace(go.Scatter(
-    x=future_df["Date"], 
-    y=future_df["Predicted"], 
+    x=next_7_days["Date"], 
+    y=next_7_days["Predicted"], 
     mode="lines+markers", 
     name="Predicted Price", 
     line=dict(color="gold", width=3),
     marker=dict(size=8)
 ))
+
 fig.add_trace(go.Scatter(
-    x=future_df["Date"], 
-    y=future_df["Upper_Bound"], 
+    x=next_7_days["Date"], 
+    y=next_7_days["Upper_Bound"], 
     mode="lines", 
     name="Upper Bound", 
     line=dict(dash="dot", color="lightgreen", width=2)
 ))
+
 fig.add_trace(go.Scatter(
-    x=future_df["Date"], 
-    y=future_df["Lower_Bound"], 
+    x=next_7_days["Date"], 
+    y=next_7_days["Lower_Bound"], 
     mode="lines", 
     name="Lower Bound", 
     line=dict(dash="dot", color="salmon", width=2)
 ))
+
 fig.update_layout(
     title="24KT Gold Price Forecast",
     xaxis_title="Date",
@@ -87,70 +94,72 @@ fig.update_layout(
     showlegend=True,
     height=500
 )
+
 st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("### 💡 Investment Insight")
-if len(future_df) >= 2:
-    price_start = future_df["Predicted"].iloc[0]
-    price_end = future_df["Predicted"].iloc[-1]
-    price_change = ((price_end - price_start) / price_start) * 100
+if len(next_7_days) >= 2:
+    start_price = next_7_days["Predicted"].iloc[0]
+    end_price = next_7_days["Predicted"].iloc[-1]
+    price_trend = ((end_price - start_price) / start_price) * 100
     
-    if price_change > 2:
-        st.success(f"📈 Price is expected to rise by {price_change:.2f}% in the next 7 days – Excellent time to invest!")
-    elif price_change > 0:
-        st.success(f"📈 Price is expected to rise by {price_change:.2f}% in the next 7 days – Good time to invest.")
-    elif price_change < -2:
-        st.warning(f"📉 Price is expected to decline by {abs(price_change):.2f}% in the next 7 days – Consider waiting.")
-    elif price_change < 0:
-        st.warning(f"📉 Price is expected to decline by {abs(price_change):.2f}% in the next 7 days – You may wait.")
+    if price_trend > 2:
+        st.success(f"📈 Price expected to rise by {price_trend:.2f}% – Excellent time to invest!")
+    elif price_trend > 0:
+        st.success(f"📈 Price expected to rise by {price_trend:.2f}% – Good time to invest.")
+    elif price_trend < -2:
+        st.warning(f"📉 Price expected to decline by {abs(price_trend):.2f}% – Consider waiting.")
+    elif price_trend < 0:
+        st.warning(f"📉 Price expected to decline by {abs(price_trend):.2f}% – You may wait.")
     else:
-        st.info("⏸️ Price is expected to remain stable – Neutral investment window.")
+        st.info("⏸️ Price expected to remain stable – Neutral investment window.")
 else:
-    st.info("⏸️ Insufficient data for investment insight.")
+    st.info("⏸️ Insufficient data for insight.")
 
 st.markdown("### 🔍 Predict Gold Price for a Specific Date")
-with st.form("predict_form"):
-    col_date, col_button = st.columns([3, 1])
-    with col_date:
-        selected_date = st.date_input(
-            "Select a date to predict",
-            value=df["Date"].iloc[0].date(),
-            min_value=df["Date"].min().date(),
-            max_value=df["Date"].max().date()
-        )
-    with col_button:
-        st.write("")
-        submitted = st.form_submit_button("🔎 Predict", use_container_width=True)
 
-if submitted:
-    selected_datetime = pd.to_datetime(selected_date)
-    match = df[df["Date"].dt.date == selected_date]
+min_date = df["Date"].min().date()
+max_date = df["Date"].max().date()
+default_date = df["Date"].iloc[0].date()
+
+selected_date = st.date_input(
+    "Select a date to predict:",
+    value=default_date,
+    min_value=min_date,
+    max_value=max_date
+)
+
+if st.button("🔎 Get Prediction"):
+    matching_rows = df[df["Date"].dt.date == selected_date]
     
-    if not match.empty:
-        row = match.iloc[0]
-        col_pred, col_conf = st.columns(2)
-        with col_pred:
-            st.success(f"📆 Predicted 24KT Gold Price on {selected_date}: ₹{row['Predicted']:,.2f}")
-        with col_conf:
-            st.info(f"📊 Confidence Interval: ₹{row['Lower_Bound']:,.2f} – ₹{row['Upper_Bound']:,.2f}")
+    if not matching_rows.empty:
+        prediction_row = matching_rows.iloc[0]
+        predicted_price = prediction_row["Predicted"]
+        lower_bound = prediction_row["Lower_Bound"]
+        upper_bound = prediction_row["Upper_Bound"]
         
-        volatility = row['Upper_Bound'] - row['Lower_Bound']
-        confidence_percent = ((row['Predicted'] - row['Lower_Bound']) / (row['Upper_Bound'] - row['Lower_Bound'])) * 100
-        st.info(f"📈 Prediction Confidence: {confidence_percent:.1f}% | Market Volatility: ₹{volatility:.2f}")
+        col_pred, col_conf = st.columns(2)
+        
+        with col_pred:
+            st.success(f"📆 Predicted Price on {selected_date}: ₹{predicted_price:,.2f}")
+        
+        with col_conf:
+            st.info(f"📊 Range: ₹{lower_bound:,.2f} – ₹{upper_bound:,.2f}")
+        
+        volatility = upper_bound - lower_bound
+        st.info(f"📈 Market Volatility: ₹{volatility:.2f}")
     else:
         st.error("❌ No forecast available for this date.")
 
 st.markdown("### 📋 Extended Forecast – Next 30 Days")
-extended_df = df.head(30).copy()
-extended_df["Date_Formatted"] = extended_df["Date"].dt.strftime("%Y-%m-%d")
-extended_df["Predicted_Formatted"] = extended_df["Predicted"].apply(lambda x: f"₹{x:,.2f}")
-extended_df["Lower_Bound_Formatted"] = extended_df["Lower_Bound"].apply(lambda x: f"₹{x:,.2f}")
-extended_df["Upper_Bound_Formatted"] = extended_df["Upper_Bound"].apply(lambda x: f"₹{x:,.2f}")
+extended_forecast = df.head(30).copy()
+extended_forecast["Date"] = extended_forecast["Date"].dt.strftime("%Y-%m-%d")
+extended_forecast["Predicted"] = extended_forecast["Predicted"].apply(lambda x: f"₹{x:,.2f}")
+extended_forecast["Lower_Bound"] = extended_forecast["Lower_Bound"].apply(lambda x: f"₹{x:,.2f}")
+extended_forecast["Upper_Bound"] = extended_forecast["Upper_Bound"].apply(lambda x: f"₹{x:,.2f}")
 
-display_df = extended_df[["Date_Formatted", "Predicted_Formatted", "Lower_Bound_Formatted", "Upper_Bound_Formatted"]]
-display_df.columns = ["Date", "Predicted Price", "Lower Bound", "Upper Bound"]
-
-st.dataframe(display_df, use_container_width=True, height=400)
+extended_forecast.columns = ["Date", "Predicted Price", "Lower Bound", "Upper Bound"]
+st.dataframe(extended_forecast, use_container_width=True, height=400)
 
 st.markdown("### 📊 Price Statistics")
 col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
@@ -161,31 +170,32 @@ with col_stat1:
 
 with col_stat2:
     max_price = df["Predicted"].max()
-    max_date = df[df["Predicted"] == max_price]["Date"].iloc[0]
+    max_idx = df["Predicted"].idxmax()
+    max_date = df.iloc[max_idx]["Date"].strftime("%Y-%m-%d")
     st.metric("🔺 Highest Price", f"₹{max_price:,.2f}")
-    st.caption(f"Expected on {max_date.strftime('%Y-%m-%d')}")
+    st.caption(f"Expected on {max_date}")
 
 with col_stat3:
     min_price = df["Predicted"].min()
-    min_date = df[df["Predicted"] == min_price]["Date"].iloc[0]
+    min_idx = df["Predicted"].idxmin()
+    min_date = df.iloc[min_idx]["Date"].strftime("%Y-%m-%d")
     st.metric("🔻 Lowest Price", f"₹{min_price:,.2f}")
-    st.caption(f"Expected on {min_date.strftime('%Y-%m-%d')}")
+    st.caption(f"Expected on {min_date}")
 
 with col_stat4:
     price_range = max_price - min_price
     st.metric("📏 Price Range", f"₹{price_range:,.2f}")
 
 st.markdown("### 🎯 Investment Recommendations")
-current_price = latest["Predicted"]
-avg_price_7_days = future_df["Predicted"].mean()
-trend_direction = "bullish" if avg_price_7_days > current_price else "bearish"
+current_price = latest_price
+avg_price_7_days = next_7_days["Predicted"].mean()
 
-if trend_direction == "bullish":
-    st.success("🐂 **Bullish Trend Detected**: Market sentiment is positive. Consider gradual investment.")
-    st.info("💡 **Strategy**: Dollar-cost averaging recommended. Invest in small amounts regularly.")
+if avg_price_7_days > current_price:
+    st.success("🐂 **Bullish Trend**: Market sentiment positive. Consider investment.")
+    st.info("💡 **Strategy**: Dollar-cost averaging recommended.")
 else:
-    st.warning("🐻 **Bearish Trend Detected**: Market sentiment is cautious. Wait for better entry points.")
-    st.info("💡 **Strategy**: Monitor closely and consider investing when prices stabilize.")
+    st.warning("🐻 **Bearish Trend**: Market sentiment cautious. Wait for better entry.")
+    st.info("💡 **Strategy**: Monitor closely for stabilization.")
 
 st.markdown("---")
 st.markdown("<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Prophet Forecast</p>", unsafe_allow_html=True)
