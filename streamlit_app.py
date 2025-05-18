@@ -56,7 +56,7 @@ else:
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    st.metric(label="📅 Latest Forecast Date", value="2025-06-15")
+    st.metric(label="📅 Latest Forecast Date", value="2025-05-16")
 
 with col2:
     st.metric(label="📈 24KT Gold Price (Predicted)", value=f"₹{latest['Trident_Forecast']:,.2f}")
