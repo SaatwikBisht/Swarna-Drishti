@@ -1,7 +1,7 @@
 import streamlit as st
 import pandas as pd
 import plotly.graph_objs as go
-from datetime import datetime, timedelta
+from datetime import datetime
 
 st.set_page_config(page_title="Swarna Drishti", layout="wide")
 
@@ -42,9 +42,8 @@ else:
 col1, col2, col3 = st.columns(3)
 
 with col1:
-    # Convert datetime to string format for display
     date_str = latest_date.strftime("%Y-%m-%d")
-    st.metric("📅 Latest Forecast Date", date_str)
+    st.metric("🗕️ Latest Forecast Date", date_str)
 
 with col2:
     price_str = f"₹{latest_price:,.2f}"
@@ -86,7 +85,7 @@ if len(next_7_days) >= 2:
     start_price = next_7_days["Predicted_Price"].iloc[0]
     end_price = next_7_days["Predicted_Price"].iloc[-1]
     weekly_trend = ((end_price - start_price) / start_price) * 100
-    
+
     if weekly_trend > 3:
         st.success(f"📈 **Strong Bullish Signal**: Price expected to rise by {weekly_trend:.2f}% over next 7 days – Excellent time to invest!")
         st.info("💰 **Recommendation**: Consider buying gold now as significant gains are expected.")
@@ -113,7 +112,7 @@ with col_date:
     min_date = df["Date"].min().date()
     max_date = df["Date"].max().date()
     default_date = df["Date"].iloc[0].date()
-    
+
     selected_date = st.date_input(
         "Select a date to predict:",
         value=default_date,
@@ -127,17 +126,17 @@ with col_button:
 
 if predict_button:
     matching_rows = df[df["Date"].dt.date == selected_date]
-    
+
     if not matching_rows.empty:
         prediction_row = matching_rows.iloc[0]
         predicted_price = prediction_row["Predicted_Price"]
-        
+
         st.success(f"📆 **Predicted 24KT Gold Price on {selected_date}**: ₹{predicted_price:,.2f}")
-        
+
         current_price = latest_price
         price_diff = predicted_price - current_price
         price_change_percent = (price_diff / current_price) * 100
-        
+
         if price_diff > 0:
             st.info(f"📈 Price is expected to be ₹{price_diff:,.2f} ({price_change_percent:.2f}%) higher than current prediction")
         elif price_diff < 0:
@@ -149,7 +148,7 @@ if predict_button:
 
 st.markdown("### 📋 Extended Forecast Table")
 
-tab1, tab2 = st.tabs(["📅 Next 7 Days", "📅 Next 30 Days"])
+tab1, tab2 = st.tabs(["🗕️ Next 7 Days", "🗕️ Next 30 Days"])
 
 with tab1:
     display_7_days = next_7_days.copy()
@@ -187,82 +186,3 @@ with col_stat3:
     min_date_str = df.iloc[min_idx]["Date"].strftime("%Y-%m-%d")
     st.metric("🔻 Lowest Price", f"₹{min_price:,.2f}")
     st.caption(f"Expected on {min_date_str}")
-
-with col_stat4:
-    price_volatility = max_price - min_price
-    volatility_percent = (price_volatility / avg_price) * 100
-    st.metric("📏 Price Volatility", f"₹{price_volatility:,.2f}")
-    st.caption(f"{volatility_percent:.1f}% of avg price")
-
-st.markdown("### 🎯 Investment Strategy Recommendations")
-
-current_price = latest_price
-avg_next_7_days = next_7_days["Predicted_Price"].mean()
-avg_next_30_days = df.head(30)["Predicted_Price"].mean()
-
-col_strategy1, col_strategy2 = st.columns(2)
-
-with col_strategy1:
-    st.markdown("#### 🗓️ Short-term (7 Days)")
-    if avg_next_7_days > current_price * 1.02:
-        st.success("🟢 **BUY SIGNAL**: Strong upward trend expected")
-        st.write("• Consider buying within next 1-2 days")
-        st.write("• Expected short-term gains")
-    elif avg_next_7_days < current_price * 0.98:
-        st.error("🔴 **SELL/WAIT SIGNAL**: Downward trend expected")
-        st.write("• Avoid buying for next week")
-        st.write("• Consider selling if you own gold")
-    else:
-        st.info("🟡 **HOLD SIGNAL**: Stable prices expected")
-        st.write("• Market consolidation phase")
-        st.write("• Suitable for steady investors")
-
-with col_strategy2:
-    st.markdown("#### 📅 Long-term (30 Days)")
-    if avg_next_30_days > current_price * 1.05:
-        st.success("🟢 **STRONG BUY**: Excellent long-term prospects")
-        st.write("• Dollar-cost averaging recommended")
-        st.write("• Suitable for retirement planning")
-    elif avg_next_30_days < current_price * 0.95:
-        st.warning("🟠 **WAIT**: Better entry points ahead")
-        st.write("• Monitor for 2-3 weeks")
-        st.write("• Set price alerts for better entry")
-    else:
-        st.info("🟡 **NEUTRAL**: Steady long-term outlook")
-        st.write("• Good for regular SIP investments")
-        st.write("• Low risk, moderate returns")
-
-st.markdown("### 📈 Price Trend Visualization - Extended View")
-fig_extended = go.Figure()
-fig_extended.add_trace(go.Scatter(
-    x=df["Date"], 
-    y=df["Predicted_Price"], 
-    mode="lines", 
-    name="Predicted Price Trend", 
-    line=dict(color="gold", width=3),
-    fill=None
-))
-
-fig_extended.update_layout(
-    title="Gold Price Forecast - Complete Timeline",
-    xaxis_title="Date",
-    yaxis_title="INR per 10g",
-    template="plotly_dark",
-    height=400,
-    hovermode='x unified'
-)
-
-st.plotly_chart(fig_extended, use_container_width=True)
-
-st.markdown("---")
-st.markdown("### ⚠️ Disclaimer")
-st.warning("""
-**Important Notice**: 
-- These predictions are based on historical data and AI modeling
-- Gold prices are subject to market volatility and external factors
-- Always consult with financial advisors before making investment decisions
-- Past performance does not guarantee future results
-""")
-
-st.markdown("---")
-st.markdown("<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Prophet Forecast | Made with ❤️ for Smart Investors</p>", unsafe_allow_html=True)
