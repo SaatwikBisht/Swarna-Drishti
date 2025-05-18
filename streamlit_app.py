@@ -133,7 +133,6 @@ st.dataframe(
     }).set_index("Date"),
     use_container_width=True
 )
-
 st.markdown("---")
 st.markdown(
     "<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Trident Forecast</p>",
