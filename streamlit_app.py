@@ -14,7 +14,7 @@ st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
 @st.cache_data
 def load_forecast():
     df = pd.read_csv("forecast.csv")
-    df = df[["ds", "yhat", "yhat_lower", "yhat_upper"]]  # Only necessary columns
+    df = df[["ds", "yhat", "yhat_lower", "yhat_upper"]]
     df.rename(columns={
         "ds": "Date",
         "yhat": "Predicted",
@@ -39,10 +39,11 @@ percent_change = (delta / previous["Predicted"]) * 100 if previous["Predicted"] 
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("📅 Latest Forecast Date", latest["ds"].date())
+    st.metric("📅 Latest Forecast Date", latest["Date"].date())
 
 with col2:
     st.metric("📈 24KT Gold Price (Predicted)", f"₹{latest['Predicted']:,.2f}")
+
 with col3:
     st.metric("📊 1-Day Change", f"₹{delta:,.2f}", f"{percent_change:.2f}%")
 
@@ -75,7 +76,12 @@ else:
 # -------------------- Predict for Selected Date --------------------
 st.markdown("### 🔍 Predict Gold Price for a Specific Date")
 with st.form("predict_form"):
-    selected_date = st.date_input("Select a date to predict", value=df["Date"].iloc[0].date(), min_value=df["Date"].min().date(), max_value=df["Date"].max().date())
+    selected_date = st.date_input(
+        "Select a date to predict",
+        value=df["Date"].iloc[0].date(),
+        min_value=df["Date"].min().date(),
+        max_value=df["Date"].max().date()
+    )
     submitted = st.form_submit_button("🔎 Predict")
 
 if submitted:
@@ -93,12 +99,18 @@ last_7 = df.tail(7).copy()
 last_7["Date"] = last_7["Date"].dt.strftime("%Y-%m-%d")
 last_7.set_index("Date", inplace=True)
 
-st.dataframe(last_7[["Predicted", "Lower_Bound", "Upper_Bound"]].rename(columns={
-    "Predicted": "Predicted Price (INR)",
-    "Lower_Bound": "Lower Bound",
-    "Upper_Bound": "Upper Bound"
-}), use_container_width=True)
+st.dataframe(
+    last_7[["Predicted", "Lower_Bound", "Upper_Bound"]].rename(columns={
+        "Predicted": "Predicted Price (INR)",
+        "Lower_Bound": "Lower Bound",
+        "Upper_Bound": "Upper Bound"
+    }),
+    use_container_width=True
+)
 
 # -------------------- Footer --------------------
 st.markdown("---")
-st.markdown("<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Prophet Forecast</p>", unsafe_allow_html=True)
+st.markdown(
+    "<p style='text-align:center; color:gray;'>© 2025 Swarna Drishti | Powered by Prophet Forecast</p>",
+    unsafe_allow_html=True
+)
