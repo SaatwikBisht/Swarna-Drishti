@@ -25,7 +25,7 @@ def load_forecast():
         df.reset_index(drop=True, inplace=True)
         return df
     except Exception as e:
-        st.error(f"Error loading forecast data: {e}")
+        st.error(f"Error loading forecast data: {str(e)}")
         return pd.DataFrame()
 
 df = load_forecast()
@@ -45,13 +45,17 @@ else:
 
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.metric("📅 Latest Forecast Date", latest["Date"].strftime("%Y-%m-%d"))
+    date_str = latest["Date"].strftime("%Y-%m-%d")
+    st.metric("📅 Latest Forecast Date", date_str)
 
 with col2:
-    st.metric("📈 24KT Gold Price (Predicted)", f"₹{latest['Predicted']:,.2f}")
+    price_str = f"₹{latest['Predicted']:,.2f}"
+    st.metric("📈 24KT Gold Price (Predicted)", price_str)
 
 with col3:
-    st.metric("📊 1-Day Change", f"₹{delta:,.2f}", f"{percent_change:.2f}%")
+    delta_str = f"₹{delta:,.2f}"
+    percent_str = f"{percent_change:.2f}%"
+    st.metric("📊 1-Day Change", delta_str, percent_str)
 
 st.markdown("### 📈 Gold Price Forecast – Next 7 Days (24KT)")
 future_df = df.head(7)
@@ -112,11 +116,14 @@ st.markdown("### 🔍 Predict Gold Price for a Specific Date")
 with st.form("predict_form"):
     col_date, col_button = st.columns([3, 1])
     with col_date:
+        min_date = df["Date"].min().date()
+        max_date = df["Date"].max().date()
+        default_date = df["Date"].iloc[0].date()
         selected_date = st.date_input(
             "Select a date to predict",
-            value=df["Date"].iloc[0].date(),
-            min_value=df["Date"].min().date(),
-            max_value=df["Date"].max().date()
+            value=default_date,
+            min_value=min_date,
+            max_value=max_date
         )
     with col_button:
         st.write("")
@@ -130,13 +137,17 @@ if submitted:
         row = match.iloc[0]
         col_pred, col_conf = st.columns(2)
         with col_pred:
-            st.success(f"📆 Predicted 24KT Gold Price on {selected_date}: ₹{row['Predicted']:,.2f}")
+            price_str = f"₹{row['Predicted']:,.2f}"
+            st.success(f"📆 Predicted 24KT Gold Price on {selected_date}: {price_str}")
         with col_conf:
-            st.info(f"📊 Confidence Interval: ₹{row['Lower_Bound']:,.2f} – ₹{row['Upper_Bound']:,.2f}")
+            lower_str = f"₹{row['Lower_Bound']:,.2f}"
+            upper_str = f"₹{row['Upper_Bound']:,.2f}"
+            st.info(f"📊 Confidence Interval: {lower_str} – {upper_str}")
         
         volatility = row['Upper_Bound'] - row['Lower_Bound']
         confidence_percent = ((row['Predicted'] - row['Lower_Bound']) / (row['Upper_Bound'] - row['Lower_Bound'])) * 100
-        st.info(f"📈 Prediction Confidence: {confidence_percent:.1f}% | Market Volatility: ₹{volatility:.2f}")
+        vol_str = f"₹{volatility:.2f}"
+        st.info(f"📈 Prediction Confidence: {confidence_percent:.1f}% | Market Volatility: {vol_str}")
     else:
         st.error("❌ No forecast available for this date.")
 
@@ -157,23 +168,27 @@ col_stat1, col_stat2, col_stat3, col_stat4 = st.columns(4)
 
 with col_stat1:
     avg_price = df["Predicted"].mean()
-    st.metric("📈 Average Price", f"₹{avg_price:,.2f}")
+    avg_str = f"₹{avg_price:,.2f}"
+    st.metric("📈 Average Price", avg_str)
 
 with col_stat2:
     max_price = df["Predicted"].max()
     max_date = df[df["Predicted"] == max_price]["Date"].iloc[0]
-    st.metric("🔺 Highest Price", f"₹{max_price:,.2f}")
+    max_str = f"₹{max_price:,.2f}"
+    st.metric("🔺 Highest Price", max_str)
     st.caption(f"Expected on {max_date.strftime('%Y-%m-%d')}")
 
 with col_stat3:
     min_price = df["Predicted"].min()
     min_date = df[df["Predicted"] == min_price]["Date"].iloc[0]
-    st.metric("🔻 Lowest Price", f"₹{min_price:,.2f}")
+    min_str = f"₹{min_price:,.2f}"
+    st.metric("🔻 Lowest Price", min_str)
     st.caption(f"Expected on {min_date.strftime('%Y-%m-%d')}")
 
 with col_stat4:
     price_range = max_price - min_price
-    st.metric("📏 Price Range", f"₹{price_range:,.2f}")
+    range_str = f"₹{price_range:,.2f}"
+    st.metric("📏 Price Range", range_str)
 
 st.markdown("### 🎯 Investment Recommendations")
 current_price = latest["Predicted"]
