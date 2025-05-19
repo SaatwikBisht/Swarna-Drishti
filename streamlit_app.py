@@ -13,7 +13,9 @@ st.markdown("<hr style='border: 1px solid gold;'>", unsafe_allow_html=True)
 def load_forecast():
     try:
         df = pd.read_csv("forecast.csv")
-        df["Date"] = pd.to_datetime(df["Date"])
+        # Fix: explicitly specify the correct format
+        df["Date"] = pd.to_datetime(df["Date"], format="%d-%m-%Y", errors='coerce')
+        df = df.dropna(subset=["Date"])  # Drop rows where parsing failed
         df = df.sort_values("Date").reset_index(drop=True)
         return df
     except Exception as e:
